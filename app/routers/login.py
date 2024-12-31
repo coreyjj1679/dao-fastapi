@@ -44,7 +44,7 @@ async def get_nonce():
 
 
 @router.post(
-    "/auth/login",
+    "/login",
 )
 async def login(
     wallet_address: Annotated[

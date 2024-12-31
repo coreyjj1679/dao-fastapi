@@ -16,16 +16,11 @@ router = APIRouter(
 
 
 @router.post(
-    "/proposals/{id}/vote",
+    "/proposals/{proposal_id}/vote",
     dependencies=[Depends(JWTBearer())],
 )
 async def cast_vote(
-    proposal_id: Annotated[
-        str,
-        Query(
-            description="id of the proposal",
-        ),
-    ],
+    proposal_id: str,
     voter_address: Annotated[
         str,
         Query(
@@ -54,7 +49,7 @@ async def cast_vote(
         "proposal_id": proposal_id,
         "voter_address": voter_address,
         "option": option,
-        "voted_timestamp": datetime.now().timestamp(),
+        "voted_timestamp": int(datetime.now().timestamp()),
     }
     vote_obj = Vote(**vote)
     session.add(vote_obj)
