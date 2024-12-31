@@ -1,14 +1,11 @@
 import uuid
 from datetime import datetime, timedelta, timezone
-from enum import Enum, IntEnum
-from os import walk
-from re import I
+from enum import Enum
 from typing import Annotated, Sequence
 
 import jwt
 from eth_account.messages import encode_defunct
 from fastapi import Depends, FastAPI, HTTPException, Query
-from pydantic import BaseModel, ValidationError, validator
 from sqlmodel import Field, Session, SQLModel, create_engine, select
 from web3 import Web3
 
@@ -273,6 +270,9 @@ async def cast_vote(
     ],
     session: SessionDep,
 ) -> Vote | None:
+    """
+    vote a proposal by a proposal id
+    """
     proposal = session.get(Proposal, proposal_id)
     if not proposal:
         raise HTTPException(
@@ -298,6 +298,9 @@ async def get_votes(
     proposal_id: str,
     session: SessionDep,
 ) -> list[Vote] | None:
+    """
+    get all votes of a proposal
+    """
     votes = session.exec(select(Vote).filter(Vote.proposal_id == proposal_id)).all()
 
     return votes
