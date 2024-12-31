@@ -15,6 +15,15 @@ router = APIRouter(
 )
 
 
+@router.get("/")
+async def get_proposals(session: SessionDep) -> Sequence[Proposal] | None:
+    """
+    list all proposals
+    """
+    proposals = session.exec(select(Proposal)).all()
+    return proposals
+
+
 @router.get(
     "/{proposal_id}",
 )
@@ -27,15 +36,6 @@ async def get_proposal(
     """
     proposal = session.get(Proposal, proposal_id)
     return proposal
-
-
-@router.get("/")
-async def get_proposals(session: SessionDep) -> Sequence[Proposal] | None:
-    """
-    list all proposals
-    """
-    proposals = session.exec(select(Proposal)).all()
-    return proposals
 
 
 @router.post(

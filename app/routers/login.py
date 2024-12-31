@@ -56,7 +56,7 @@ async def login(
     signed_message: Annotated[
         str,
         Query(
-            description="message signed, it should be the nonce generated from the `get_nonce` endpoint",
+            description="message signed, it should be the nonce generated from the `/auth/request-nonce` endpoint",
         ),
     ],
     signature: Annotated[
