@@ -42,7 +42,7 @@ $ pytest app/tests/**.py
 ## Sign message
 
 ```
-python3 sign.py <NONCE>
+$ python3 sign.py <NONCE>
 ```
 
 ## API Specifications
@@ -159,7 +159,7 @@ python3 sign.py <NONCE>
   ]
   ```
 
-- get the list of vote by proposal id
+- cast vote by proposal id
 
   - `POST '/proposals/{proposal_id}/votes'`
   - params:
