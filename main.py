@@ -44,12 +44,9 @@ class Proposal(SQLModel, table=True):
 
 
 class Vote(SQLModel, table=True):
-    vote_id: str = Field(primary_key=True)
+    vote_id: str = Field(default_factory=lambda: uuid.uuid4().hex, primary_key=True)
     proposal_id: str
-    voter_address: str = Field(
-        title="The Snap",
-        description="this is the value of snap",
-    )
+    voter_address: str
     voted_timestamp: int
     option: Option
 
@@ -236,6 +233,15 @@ async def create_proposals(
     return proposal_obj
 
 
+@app.get("/proposal/{proposal_id}", tags=["proposals"])
+async def get_proposal(proposal_id: str, session: SessionDep) -> Proposal | None:
+    """
+    get proposal by proposal id
+    """
+    proposal = session.get(Proposal, proposal_id)
+    return proposal
+
+
 @app.get("/proposals", tags=["proposals"])
 async def get_proposals(session: SessionDep) -> Sequence[Proposal] | None:
     """
@@ -245,11 +251,53 @@ async def get_proposals(session: SessionDep) -> Sequence[Proposal] | None:
     return proposals
 
 
-@app.post("/proposals/{id}/vote")
-async def cast_vote(session: SessionDep) -> Vote | None:
-    pass
+@app.post("/proposals/{id}/vote", tags=["vote"])
+async def cast_vote(
+    proposal_id: Annotated[
+        str,
+        Query(
+            description="id of the proposal",
+        ),
+    ],
+    voter_address: Annotated[
+        str,
+        Query(
+            description="adress of the voter",
+        ),
+    ],
+    option: Annotated[
+        Option,
+        Query(
+            description="option of the vote",
+        ),
+    ],
+    session: SessionDep,
+) -> Vote | None:
+    proposal = session.get(Proposal, proposal_id)
+    if not proposal:
+        raise HTTPException(
+            status_code=422,
+            detail=f"`proposal`: {proposal_id} not found.",
+        )
+
+    vote = {
+        "proposal_id": proposal_id,
+        "voter_address": voter_address,
+        "option": option,
+        "voted_timestamp": datetime.now().timestamp(),
+    }
+    vote_obj = Vote(**vote)
+    session.add(vote_obj)
+    session.commit()
+    session.refresh(vote_obj)
+    return vote_obj
 
 
-@app.get("/proposals/{id}/results")
-async def get_votes(session: SessionDep) -> list[Vote] | None:
-    pass
+@app.get("/proposals/{proposal_id}/results", tags=["vote"])
+async def get_votes(
+    proposal_id: str,
+    session: SessionDep,
+) -> list[Vote] | None:
+    votes = session.exec(select(Vote).filter(Vote.proposal_id == proposal_id)).all()
+
+    return votes
