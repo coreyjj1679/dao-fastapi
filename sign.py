@@ -38,10 +38,10 @@ if __name__ == "__main__":
         print(f"Failed to connect to {endpoint}")
     print("Signing message...")
     print(f"wallet_address: {w3.eth.account.from_key(pkey).address}")
-    print(f"message to be signed: ", msg)
+    print("message to be signed: ", msg)
     sign = sign_msg(w3, pkey, msg)
     if sign:
-        print(f"Message signed.")
+        print("Message signed.")
         print(f"Signature: {sign['signature'].hex()}")
     else:
         print(f"failed to sign msg: {msg}")

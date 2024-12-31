@@ -1,5 +1,5 @@
 """
-Auth config
+JWT config
 """
 
 TOKEN_DURATION_MINUTES = 60
