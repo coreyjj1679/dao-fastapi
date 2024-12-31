@@ -1,0 +1,7 @@
+eth_account==0.11.2
+fastapi==0.115.6
+pydantic==2.10.4
+PyJWT==2.10.1
+python-dotenv==1.0.1
+sqlmodel==0.0.22
+web3==6.17.2
