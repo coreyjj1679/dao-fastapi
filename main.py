@@ -8,9 +8,11 @@ from eth_account.messages import encode_defunct
 from fastapi import Depends, FastAPI, HTTPException, Query
 from sqlmodel import Field, Session, SQLModel, create_engine, select
 from web3 import Web3
-
-from config import SECRET_KEY, TOKEN_DURATION_MINUTES
+from passlib.context import CryptContext
+from auth_bearer import JWTBearer
+from config import SECRET_KEY, TOKEN_DURATION_MINUTES, ALGORITHM
 from utils import is_eq_address
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 
 class Option(str, Enum):
@@ -93,6 +95,11 @@ def on_startup():
     create_db_and_tables()
 
 
+@app.get("/")
+async def ping():
+    return {"message": "OK"}
+
+
 @app.post(
     "/auth/request-nonce",
     tags=["login"],
@@ -144,7 +151,7 @@ async def login(
             minutes=TOKEN_DURATION_MINUTES
         )
         expiration_timestamp = expiration.replace(tzinfo=timezone.utc).timestamp()
-        to_encode.update({"expiration": expiration_timestamp})
+        to_encode.update({"expires": expiration_timestamp})
         encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm="HS256")
 
         new_user = User(
@@ -159,7 +166,11 @@ async def login(
         raise HTTPException(status_code=401, detail="Unauthorized")
 
 
-@app.post("/proposals", tags=["proposals"])
+@app.post(
+    "/proposals",
+    dependencies=[Depends(JWTBearer())],
+    tags=["proposals"],
+)
 async def create_proposals(
     session: SessionDep,
     title: Annotated[
@@ -193,7 +204,6 @@ async def create_proposals(
         ),
     ] = 86400.0,
 ) -> Proposal:
-    # @TODO: Check auth with JWT
     proposal = {
         "title": title,
         "description": description,
@@ -230,8 +240,13 @@ async def create_proposals(
     return proposal_obj
 
 
-@app.get("/proposal/{proposal_id}", tags=["proposals"])
-async def get_proposal(proposal_id: str, session: SessionDep) -> Proposal | None:
+@app.get(
+    "/proposal/{proposal_id}", dependencies=[Depends(JWTBearer())], tags=["proposals"]
+)
+async def get_proposal(
+    proposal_id: str,
+    session: SessionDep,
+) -> Proposal | None:
     """
     get proposal by proposal id
     """
