@@ -14,11 +14,28 @@ router = APIRouter(
 )
 
 
+def update_expired_proposals(session: SessionDep):
+    # fetch all expired proposals
+    current_timestamp = datetime.now().timestamp()
+    proposals_db = session.exec(
+        select(Proposal)
+        .filter(Proposal.status == ProposalStatus.ACTIVE)
+        .filter(current_timestamp > Proposal.end_timestamp)
+    )
+
+    for proposal in proposals_db:
+        proposal.status = ProposalStatus.CLOSED
+
+    session.commit()
+
+
 @router.get("/")
 async def get_proposals(session: SessionDep) -> Sequence[Proposal] | None:
     """
     list all proposals
     """
+    update_expired_proposals(session)
+
     proposals = session.exec(select(Proposal)).all()
     return proposals
 
@@ -33,6 +50,8 @@ async def get_proposal(
     """
     get proposal by proposal id
     """
+    update_expired_proposals(session)
+
     proposal = session.get(Proposal, proposal_id)
     return proposal
 

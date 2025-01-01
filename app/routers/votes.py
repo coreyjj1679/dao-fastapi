@@ -5,10 +5,10 @@ from typing import Annotated
 from fastapi import Depends, HTTPException, Query
 from sqlmodel import select
 
+from .proposals import update_expired_proposals
 from ..auth import JWTBearer, get_wallet_from_rq
-
 from ..dependencies import SessionDep
-from ..schemas import Proposal, Vote, Option
+from ..schemas import Proposal, Vote, Option, ProposalStatus
 
 router = APIRouter(
     tags=["votes"],
@@ -33,11 +33,18 @@ async def cast_vote(
     """
     vote a proposal by a proposal id
     """
+    update_expired_proposals(session)
+
     proposal = session.get(Proposal, proposal_id)
     if not proposal:
         raise HTTPException(
             status_code=422,
-            detail=f"`proposal`: {proposal_id} not found.",
+            detail=f"proposal: {proposal_id} not found.",
+        )
+
+    if proposal.status == ProposalStatus.CLOSED:
+        raise HTTPException(
+            status_code=422, detail=f"proposal: {proposal_id} is closed"
         )
     voter_address = get_wallet_from_rq(request)
     if voter_address is None:
@@ -64,6 +71,8 @@ async def get_votes(
     """
     get all votes of a proposal
     """
+    update_expired_proposals(session)
+
     votes = session.exec(select(Vote).filter(Vote.proposal_id == proposal_id)).all()
 
     return votes
