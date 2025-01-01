@@ -84,3 +84,10 @@ $ python3 sign.py <NONCE>
    ![whoisme](./public/whoisme.jpg)
 
 7. Start voting!
+
+## Assumptions and trade-offs.
+
+1. Off-chain votes
+2. All addresses are check sum address. (Solution: Validator by `pydantic`)
+3. Only `["Yes", "No"]` for the options. (Solution: Add one more field `options: list[str]` into the Proposal entity)
+4. `update_expired_proposals` is called for every requests. Better solution: Add background job to update periodically.
