@@ -12,11 +12,12 @@ async def lifespan(app):
 
 app = FastAPI(lifespan=lifespan)
 
-app.include_router(login.router)
-app.include_router(proposals.router)
-app.include_router(votes.router)
-
 
 @app.get("/")
 async def ping():
     return {"message": "OK"}
+
+
+app.include_router(login.router)
+app.include_router(proposals.router)
+app.include_router(votes.router)

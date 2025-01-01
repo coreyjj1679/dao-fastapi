@@ -49,6 +49,15 @@ python3 sign.py <NONCE>
 
 ### Authentication
 
+- Health check
+  - `GET /`
+  - response:
+  ```
+   {"message": "OK"}
+  ```
+
+### Authentication
+
 - Request a Nonce
   - `POST /auth/request-nonce`
   - response:
@@ -66,6 +75,17 @@ python3 sign.py <NONCE>
 
   ```
   { token: "<JWT_TOKEN>"}
+  ```
+
+- Check session
+
+  - responses:
+
+  ```
+  {
+    wallet_address: "<WALLET_ADDRESS>",
+    expires: <EXPIRES_TIMESTAMP
+  }
   ```
 
 ### Proposals
@@ -119,9 +139,8 @@ python3 sign.py <NONCE>
   - params:
     - `title`
     - `description`
-    - `proposer`
     - `start_timestamp`
-    -
+    - `duration`
   - response:
 
     ```
@@ -164,7 +183,6 @@ python3 sign.py <NONCE>
   - `POST '/proposals/{proposal_id}/votes'`
   - params:
     - `proposal_id`
-    - `voter_address`
     - `option`
   - response:
 

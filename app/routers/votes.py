@@ -1,11 +1,11 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from datetime import datetime
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, Query
 from sqlmodel import select
 
-from ..auth import JWTBearer
+from ..auth import JWTBearer, get_wallet_from_rq
 
 from ..dependencies import SessionDep
 from ..schemas import Proposal, Vote, Option
@@ -21,12 +21,6 @@ router = APIRouter(
 )
 async def cast_vote(
     proposal_id: str,
-    voter_address: Annotated[
-        str,
-        Query(
-            description="adress of the voter",
-        ),
-    ],
     option: Annotated[
         Option,
         Query(
@@ -34,6 +28,7 @@ async def cast_vote(
         ),
     ],
     session: SessionDep,
+    request: Request,
 ) -> Vote | None:
     """
     vote a proposal by a proposal id
@@ -44,6 +39,9 @@ async def cast_vote(
             status_code=422,
             detail=f"`proposal`: {proposal_id} not found.",
         )
+    voter_address = get_wallet_from_rq(request)
+    if voter_address is None:
+        raise HTTPException(status_code=422, detail="voter address not found.")
 
     vote = {
         "proposal_id": proposal_id,

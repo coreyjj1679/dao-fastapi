@@ -3,9 +3,10 @@ from datetime import datetime, timedelta, timezone
 from typing import Annotated
 from uuid import uuid4
 from eth_account.messages import encode_defunct
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from web3 import Web3
-from config import SECRET_KEY, TOKEN_DURATION_MINUTES
+from ..auth import JWTBearer
+from config import ALGORITHM, SECRET_KEY, TOKEN_DURATION_MINUTES
 from ..utils import is_eq_address
 from ..dependencies import SessionDep
 from ..schemas import User
@@ -97,4 +98,24 @@ async def login(
         add_or_update_user(new_user, session)
         return {"token": encoded_jwt}
     else:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+
+@router.post(
+    "/whoisme",
+    dependencies=[Depends(JWTBearer())],
+)
+async def who(request: Request):
+    try:
+        token = request.headers["authorization"].split(" ")[1]
+        decoded_token = jwt.decode(
+            token,
+            SECRET_KEY,
+            algorithms=[ALGORITHM],
+        )
+        return {
+            "wallet_address": decoded_token["wallet_address"],
+            "expires": decoded_token["expires"],
+        }
+    except:
         raise HTTPException(status_code=401, detail="Unauthorized")

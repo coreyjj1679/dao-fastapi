@@ -1,11 +1,10 @@
 from datetime import datetime
 from typing import Annotated, Sequence
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlmodel import select
 
-from ..auth import JWTBearer
-
+from ..auth import JWTBearer, get_wallet_from_rq
 from ..dependencies import SessionDep
 from ..schemas import Proposal, ProposalStatus
 
@@ -44,6 +43,7 @@ async def get_proposal(
 )
 async def create_proposals(
     session: SessionDep,
+    request: Request,
     title: Annotated[
         str,
         Query(
@@ -54,12 +54,6 @@ async def create_proposals(
         str,
         Query(
             description="description of the proposal",
-        ),
-    ],
-    proposer: Annotated[
-        str,
-        Query(
-            description="address of the proposer",
         ),
     ],
     start_timestamp: Annotated[
@@ -75,14 +69,17 @@ async def create_proposals(
         ),
     ] = 86400.0,
 ) -> Proposal:
+    wallet_address = get_wallet_from_rq(request)
+    if not wallet_address:
+        raise HTTPException(status_code=422, detail="voter address not found.")
+
     proposal = {
         "title": title,
         "description": description,
-        "proposer": proposer,
+        "proposer": wallet_address,
         "created_timestamp": datetime.now().timestamp(),
         "start_timestamp": None,
     }
-
     # handle create/start/end timestamp
     if start_timestamp:
         # start timestamp couldnt be earlier then create timestamp

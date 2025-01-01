@@ -1,10 +1,7 @@
-import pytest
 from ..main import app
 from fastapi.testclient import TestClient
 from eth_account.messages import encode_defunct
 from web3 import Web3
-from ..dependencies import SessionDep
-from ..schemas import Option
 
 client = TestClient(app)
 
@@ -44,7 +41,6 @@ def test_create_vote_success():
         params={
             "title": "test proposal",
             "description": "test description",
-            "proposer": "test proposer",
         },
         headers=headers,
     )
@@ -56,7 +52,6 @@ def test_create_vote_success():
         endpoint,
         params={
             "proposal_id": proposal_id,
-            "voter_address": wallet_address,
             "option": "yes",
         },
         headers=headers,
@@ -65,7 +60,7 @@ def test_create_vote_success():
     assert vote_res.status_code == 200
 
 
-def test_create_vote_success():
+def test_create_vote_fail():
     response = client.post(
         "/auth/request-nonce",
     )
@@ -100,7 +95,6 @@ def test_create_vote_success():
         params={
             "title": "test proposal",
             "description": "test description",
-            "proposer": "test proposer",
         },
         headers=headers,
     )
@@ -112,7 +106,6 @@ def test_create_vote_success():
         endpoint,
         params={
             "proposal_id": proposal_id,
-            "voter_address": wallet_address,
             "option": "yes",
         },
     )

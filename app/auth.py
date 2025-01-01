@@ -48,3 +48,16 @@ class JWTBearer(HTTPBearer):
             isTokenValid = True
 
         return isTokenValid
+
+
+def get_wallet_from_rq(request: Request) -> str | None:
+    try:
+        token = request.headers["authorization"].split(" ")[1]
+        decoded_token = jwt.decode(
+            token,
+            SECRET_KEY,
+            algorithms=[ALGORITHM],
+        )
+        return decoded_token["wallet_address"]
+    except:
+        return None

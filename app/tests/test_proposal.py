@@ -1,9 +1,7 @@
-import pytest
 from ..main import app
 from fastapi.testclient import TestClient
 from eth_account.messages import encode_defunct
 from web3 import Web3
-from ..dependencies import SessionDep
 
 client = TestClient(app)
 
@@ -43,7 +41,6 @@ def test_create_proposal_success():
         params={
             "title": "test proposal",
             "description": "test description",
-            "proposer": "test proposer",
         },
         headers=headers,
     )
@@ -56,7 +53,6 @@ def test_create_proposal_fail():
         params={
             "title": "test proposal",
             "description": "test description",
-            "proposer": "test proposer",
         },
     )
     assert create_proposal_res.status_code == 403
