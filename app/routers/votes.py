@@ -1,3 +1,4 @@
+from collections import defaultdict
 from fastapi import APIRouter, Request
 from datetime import datetime
 from typing import Annotated
@@ -72,7 +73,7 @@ async def cast_vote(
     return vote_obj
 
 
-@router.get("/proposals/{proposal_id}/results")
+@router.get("/proposals/{proposal_id}/votes")
 async def get_votes(
     proposal_id: str,
     session: SessionDep,
@@ -85,3 +86,36 @@ async def get_votes(
     votes = session.exec(select(Vote).filter(Vote.proposal_id == proposal_id)).all()
 
     return votes
+
+
+@router.get("/proposals/{proposal_id}/results")
+async def get_results(
+    proposal_id: str,
+    session: SessionDep,
+) -> dict | None:
+    """
+    get all votes of a proposal
+    """
+    update_expired_proposals(session)
+
+    votes = session.exec(select(Vote).filter(Vote.proposal_id == proposal_id)).all()
+    result = defaultdict(int)
+
+    for vote in votes:
+        result[vote.option] += 1
+
+    winner = "invalid"
+    if result[Option.YES] > result[Option.NO]:
+        winner = "yes"
+    elif result[Option.NO] > result[Option.YES]:
+        winner = "no"
+    elif result[Option.Yes] == result[Option.NO] and result[Option.YES] > 0:
+        winner = "draw"
+
+    return {
+        "proposal_id": proposal_id,
+        "# of votes": result[Option.YES] + result[Option.NO],
+        "yes": result[Option.YES],
+        "no": result[Option.NO],
+        "winner": winner,
+    }

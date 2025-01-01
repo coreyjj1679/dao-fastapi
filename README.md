@@ -159,15 +159,15 @@ python3 sign.py <NONCE>
 
 ### Votes
 
-- get the list of vote by proposal id
+- vote by proposal id
 
-  - `GET '/proposals/{proposal_id}/results'`
+  - `POST '/proposals/{proposal_id}/vote'`
   - params:
     - `proposal_id`
+    - `option`
   - response:
 
   ```
-  [
     {
     "vote_id": "string",
     "proposal_id": "string",
@@ -175,23 +175,38 @@ python3 sign.py <NONCE>
     "voted_timestamp": 0,
     "option": "yes"
     }
-  ]
   ```
 
-- get the list of vote by proposal id
+- get the list of votes by proposal id
 
-  - `POST '/proposals/{proposal_id}/votes'`
+  - `GET '/proposals/{proposal_id}/votes'`
   - params:
     - `proposal_id`
-    - `option`
   - response:
 
   ```
+  [
+    {
+      "vote_id": "string",
+      "proposal_id": "string",
+      "voter_address": "string",
+      "voted_timestamp": 0,
+      "option": "yes"
+    }
+  ]
+  ```
+
+- get vote results by proposal id
+  - `GET '/proposals/{proposal_id}/results'`
+  - params:
+    - `proposal_id`
+  - response:
+  ```
   {
-    "vote_id": "string",
-    "proposal_id": "string",
-    "voter_address": "string",
-    "voted_timestamp": 0,
-    "option": "yes"
+    "proposal_id": "e5f62eb39d1747e68eb252d43dc1db5d",
+    "# of votes": 6,
+    "yes": 6,
+    "no": 0,
+    "winner": "yes"
   }
   ```
