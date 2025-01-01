@@ -50,6 +50,15 @@ async def cast_vote(
     if voter_address is None:
         raise HTTPException(status_code=422, detail="voter address not found.")
 
+    # check valid vote
+    prev_vote = session.exec(
+        select(Vote)
+        .filter(Vote.voter_address == voter_address)
+        .filter(Vote.proposal_id == proposal_id)
+    ).all()
+    if prev_vote:
+        raise HTTPException(status_code=422, detail="You could only vote once.")
+
     vote = {
         "proposal_id": proposal_id,
         "voter_address": voter_address,
