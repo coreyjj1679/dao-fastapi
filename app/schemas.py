@@ -36,3 +36,27 @@ class Vote(SQLModel, table=True):
     voter_address: str
     voted_timestamp: int
     option: Option
+
+
+# @TODO: Inherite from Proposal
+class TokenWeightProposal(SQLModel, table=True):
+    proposal_id: str = Field(default_factory=lambda: uuid4().hex, primary_key=True)
+    title: str
+    description: str
+    proposer: str
+    created_timestamp: float
+    start_timestamp: float
+    end_timestamp: float
+    status: ProposalStatus
+
+    token_address: str
+
+
+class TokenWeightVote(SQLModel, table=True):
+    vote_id: str = Field(default_factory=lambda: uuid4().hex, primary_key=True)
+    proposal_id: str
+    voter_address: str
+    voted_timestamp: int
+    option: Option
+
+    weight: float
